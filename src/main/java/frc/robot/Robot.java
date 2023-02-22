@@ -179,9 +179,9 @@ public class Robot extends TimedRobot {
     }
 
  
-    if(con2.getXButton() || con2.getBButton()) {
+    if(con2.getXButtonPressed() || con2.getBButtonPressed()) {
       intakeMotor.set(-intakeSpeed);
-    } else if(con2.getAButton() || con2.getYButton()) {
+    } else if(con2.getAButtonPressed() || con2.getYButtonPressed()) {
       intakeMotor.set(intakeSpeed);
     } else {
       intakeMotor.set(0);
