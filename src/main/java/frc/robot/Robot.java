@@ -26,8 +26,8 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  private XboxController con1 = new XboxController(0);
-  private XboxController con2 = new XboxController(1);
+  private XboxController driveCon = new XboxController(0);
+  private XboxController actionCon = new XboxController(1);
 
   private double deepTrigger =0.8;//Trigger 觸發最小值
 
@@ -133,39 +133,39 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    if(con1.getLeftBumperPressed() && drivespeed > 0.1) {//
+    if(driveCon.getLeftBumperPressed() && drivespeed > 0.1) {//
       drivespeed -= 0.1;
     }
-    if(con1.getRightBumperPressed() && drivespeed < 1) {
+    if(driveCon.getRightBumperPressed() && drivespeed < 1) {
       drivespeed += 0.1;
     }
 
    
-    /*if(con1.getLeftTriggerAxis() >= deepTrigger){
-      drive.tankDrive(con1.getLeftTriggerAxis() * drivespeed, con1.getLeftTriggerAxis() * -drivespeed);
+    /*if(driveCon.getLeftTriggerAxis() >= deepTrigger){
+      drive.tankDrive(driveCon.getLeftTriggerAxis() * drivespeed, driveCon.getLeftTriggerAxis() * -drivespeed);
     }
-    else if(con1.getRightTriggerAxis() >= deepTrigger){
-      drive.tankDrive(con1.getRightTriggerAxis() * -drivespeed, con1.getRightTriggerAxis()*drivespeed);
+    else if(driveCon.getRightTriggerAxis() >= deepTrigger){
+      drive.tankDrive(driveCon.getRightTriggerAxis() * -drivespeed, driveCon.getRightTriggerAxis()*drivespeed);
     }
 
-    if (Math.abs(con1.getLeftY()) > 0.1 || Math.abs(con1.getRightY()) > 0.1) {
-      drive.tankDrive(con1.getLeftY()*drivespeed, con1.getRightY()*drivespeed);
-    } else if(con1.getLeftTriggerAxis()<deepTrigger||con1.getRightTriggerAxis()<deepTrigger){
+    if (Math.abs(driveCon.getLeftY()) > 0.1 || Math.abs(driveCon.getRightY()) > 0.1) {
+      drive.tankDrive(driveCon.getLeftY()*drivespeed, driveCon.getRightY()*drivespeed);
+    } else if(driveCon.getLeftTriggerAxis()<deepTrigger||driveCon.getRightTriggerAxis()<deepTrigger){
       drive.tankDrive(0, 0);
     }*/
-    if (con1.getLeftTriggerAxis() >0.1) // Handle robot rotation
+    if (driveCon.getLeftTriggerAxis() >0.1) // Handle robot rotation
     {
       drive.tankDrive(drivespeed, -drivespeed);
     }
-    if (con1.getRightTriggerAxis() >0.1)
+    if (driveCon.getRightTriggerAxis() >0.1)
     {
       drive.tankDrive(-drivespeed, drivespeed);
     }
-    if (con1.getLeftTriggerAxis()<=0.1 && con1.getRightTriggerAxis()<=0.1) // If not rotating, drive
+    if (driveCon.getLeftTriggerAxis()<=0.1 && driveCon.getRightTriggerAxis()<=0.1) // If not rotating, drive
     {   
-      if (Math.abs(con1.getLeftY())>0.1 || Math.abs(con1.getRightY())>0.1)
+      if (Math.abs(driveCon.getLeftY())>0.1 || Math.abs(driveCon.getRightY())>0.1)
       {
-        drive.tankDrive(con1.getLeftY()*drivespeed, con1.getRightY()*drivespeed);
+        drive.tankDrive(driveCon.getLeftY()*drivespeed, driveCon.getRightY()*drivespeed);
       }
       else 
       {
@@ -173,34 +173,34 @@ public class Robot extends TimedRobot {
       }
     }
     
-    if (con1.getLeftTriggerAxis()>0.1 && con1.getRightTriggerAxis()>0.1)
+    if (driveCon.getLeftTriggerAxis()>0.1 && driveCon.getRightTriggerAxis()>0.1)
     {
       drive.tankDrive(0, 0);
     }
 
  
-    if(con2.getXButtonPressed() || con2.getBButtonPressed()) {
+    if(actionCon.getXButton() || actionCon.getBButton()) {
       intakeMotor.set(-intakeSpeed);
-    } else if(con2.getAButtonPressed() || con2.getYButtonPressed()) {
+    } else if(actionCon.getAButton() || actionCon.getYButton()) {
       intakeMotor.set(intakeSpeed);
     } else {
       intakeMotor.set(0);
     }
 
-    if((con2.getYButton() && con2.getBButton()) || con2.getXButton() && con2.getAButton()){
+    if((actionCon.getYButton() && actionCon.getBButton()) || actionCon.getXButton() && actionCon.getAButton()){
       intakeMotor.set(0);
     }
 
-    if(con2.getLeftBumperPressed() && armSpeed > 0.1){
+    if(actionCon.getLeftBumperPressed() && armSpeed > 0.1){
       armSpeed -= 0.1;
     }
-    if(con2.getRightBumperPressed() && armSpeed < 1) {
+    if(actionCon.getRightBumperPressed() && armSpeed < 1) {
       armSpeed += 0.1;
     }
 
-    pov = con2.getPOV();
-    if(Math.abs(con2.getLeftY()) > 0.1) {
-      armMotor.set(con2.getLeftY() *armSpeed);
+    pov = actionCon.getPOV();
+    if(Math.abs(actionCon.getLeftY()) > 0.1) {
+      armMotor.set(actionCon.getLeftY() *armSpeed);
     } else if(pov == 180 || pov == 225 || pov == 135) {
       armMotor.set(armSpeed);
     } else if(pov == 0 || pov == 315 || pov == 45) {
