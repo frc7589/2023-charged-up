@@ -30,24 +30,23 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  // nnew 在裡面
   private XboxController driveCon = new XboxController(0);
   private XboxController takeCon = new XboxController(1);
 
-  private static final int m_intake = 1; // 手掌馬達編號
-  private static final int m_arm = 2; // 手臂馬達編號
+  private static final int m_intake = 1; // 手掌馬達&編號
+  private static final int m_arm = 2; // 手臂馬達&編號
 
-  private static final int m_rightFront = 1;// 右前
-  private static final int m_leftFront = 11;// 左前
-  private static final int m_rightRear = 9; // 右後
-  private static final int m_leftRear = 7; // 左後
+  private static final int m_rightFront = 1;
+  private static final int m_leftFront = 11;
+  private static final int m_rightRear = 9;
+  private static final int m_leftRear = 7;
 
-  private CANSparkMax intakeMotor;
-  private CANSparkMax armMotor;
+  private CANSparkMax intakeMotor = new CANSparkMax(m_intake, MotorType.kBrushless);
+  private CANSparkMax armMotor = new CANSparkMax(m_arm, MotorType.kBrushless);
 
-  private double intakeSpeed = 0.2; // 手掌初始速度
-  private double armSpeed = 0.2; // 手臂初始速度
-  private double drivespeed = 0.2; // 底盤初始速度
+  private double intakeSpeed = 0.2; // intake initial speed
+  private double armSpeed = 0.2; // arm initial speed
+  private double drivespeed = 0.2; // car initial
 
   private int pov;
 
@@ -82,9 +81,6 @@ public class Robot extends TimedRobot {
     leftGroup = new MotorControllerGroup(motorLeftFront, motorLeftRear);
     rightGroup = new MotorControllerGroup(motorRightFront, motorRightRear);
     drive = new DifferentialDrive(leftGroup, rightGroup);
-
-    intakeMotor.restoreFactoryDefaults();
-    armMotor.restoreFactoryDefaults();
 
     leftGroup.setInverted(true); // 左馬達組啟用反轉
   }
@@ -149,7 +145,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // CAR
+    // ########## CAR ##########
 
     if (driveCon.getLeftBumperPressed() && drivespeed >= 0.3) {
       drivespeed -= 0.1;
@@ -167,7 +163,7 @@ public class Robot extends TimedRobot {
     } else if (driveCon.getRightTriggerAxis() >= 0.1) {
       drive.tankDrive(-drivespeed, drivespeed);
     }
-    // else?\\\\\
+
     if (driveCon.getLeftTriggerAxis() < 0.1 && driveCon.getRightTriggerAxis() < 0.1) {
       if (Math.abs(driveCon.getLeftY()) >= 0.1 || Math.abs(driveCon.getRightY()) >= 0.1) {
         drive.tankDrive(driveCon.getLeftY() * drivespeed, driveCon.getRightY() * drivespeed);
@@ -186,7 +182,7 @@ public class Robot extends TimedRobot {
       intakeMotor.set(0);
     }
 
-    // A && B || X && Y
+    // A && B || X && Y (intake)
     if ((takeCon.getYButton() && takeCon.getBButton()) || takeCon.getXButton() && takeCon.getAButton()) {
       intakeMotor.set(0);
     }
@@ -197,7 +193,7 @@ public class Robot extends TimedRobot {
     if (takeCon.getRightBumperPressed() && armSpeed < 1) {
       armSpeed += 0.1;
     }
-
+    // (arm)
     pov = takeCon.getPOV();
     if (Math.abs(takeCon.getLeftY()) > 0.1) {
       armMotor.set(takeCon.getLeftY() * armSpeed);
