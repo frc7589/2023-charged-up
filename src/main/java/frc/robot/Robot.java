@@ -14,11 +14,15 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
- * project. 
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the
+ * name of this class or
+ * the package after creating this project, you must also update the
+ * build.gradle file in the
+ * project.
  */
 public class Robot extends TimedRobot {
   private static final String kDefaultAuto = "Default";
@@ -26,25 +30,24 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
+  // nnew 在裡面
   private XboxController driveCon = new XboxController(0);
-  private XboxController actionCon = new XboxController(1);
+  private XboxController takeCon = new XboxController(1);
 
-  private double deepTrigger =0.8;//Trigger 觸發最小值
+  private static final int m_intake = 1; // 手掌馬達編號
+  private static final int m_arm = 2; // 手臂馬達編號
 
-  private static final int m_intake = 1; //手掌馬達編號
-  private static final int m_arm = 2;    //手臂馬達編號
-  
-  private static final int m_rightFront = 1;//右前
-  private static final int m_leftFront = 11;//左前
-  private static final int m_rightRear = 9; //右後
-  private static final int m_leftRear = 7;  //左後
+  private static final int m_rightFront = 1;// 右前
+  private static final int m_leftFront = 11;// 左前
+  private static final int m_rightRear = 9; // 右後
+  private static final int m_leftRear = 7; // 左後
 
   private CANSparkMax intakeMotor;
   private CANSparkMax armMotor;
 
-  private double intakeSpeed = 0.5; //手掌初始速度
-  private double armSpeed = 0.5; //手臂初始速度
-  private double drivespeed = 0.5; //底盤初始速度
+  private double intakeSpeed = 0.2; // 手掌初始速度
+  private double armSpeed = 0.2; // 手臂初始速度
+  private double drivespeed = 0.2; // 底盤初始速度
 
   private int pov;
 
@@ -58,7 +61,8 @@ public class Robot extends TimedRobot {
   private DifferentialDrive drive;
 
   /**
-   * This function is run when the robot is first started up and should be used for any
+   * This function is run when the robot is first started up and should be used
+   * for any
    * initialization code.
    */
   @Override
@@ -68,7 +72,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto choices", m_chooser);
 
     intakeMotor = new CANSparkMax(m_intake, MotorType.kBrushless);
-    armMotor = new CANSparkMax(m_arm, MotorType.kBrushless); 
+    armMotor = new CANSparkMax(m_arm, MotorType.kBrushless);
 
     motorRightRear = new WPI_VictorSPX(m_rightRear);
     motorRightFront = new WPI_VictorSPX(m_rightFront);
@@ -82,27 +86,38 @@ public class Robot extends TimedRobot {
     intakeMotor.restoreFactoryDefaults();
     armMotor.restoreFactoryDefaults();
 
-    leftGroup.setInverted(true); //左馬達組啟用反轉
+    leftGroup.setInverted(true); // 左馬達組啟用反轉
   }
 
   /**
-   * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
+   * This function is called every 20 ms, no matter the mode. Use this for items
+   * like diagnostics
    * that you want ran during disabled, autonomous, teleoperated and test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and
    * SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+  }
 
   /**
-   * This autonomous (along with the chooser code above) shows how to select between different
-   * autonomous modes using the dashboard. The sendable chooser code works with the Java
-   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the chooser code and
-   * uncomment the getString line to get the auto name from the text box below the Gyro
+   * This autonomous (along with the chooser code above) shows how to select
+   * between different
+   * autonomous modes using the dashboard. The sendable chooser code works with
+   * the Java
+   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the
+   * chooser code and
+   * uncomment the getString line to get the auto name from the text box below the
+   * Gyro
    *
-   * <p>You can add additional auto modes by adding additional comparisons to the switch structure
-   * below with additional strings. If using the SendableChooser make sure to add them to the
+   * <p>
+   * You can add additional auto modes by adding additional comparisons to the
+   * switch structure
+   * below with additional strings. If using the SendableChooser make sure to add
+   * them to the
    * chooser code above as well.
    */
   @Override
@@ -128,113 +143,103 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+  }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    if(driveCon.getLeftBumperPressed() && drivespeed > 0.1) {//
+    // CAR
+
+    if (driveCon.getLeftBumperPressed() && drivespeed >= 0.3) {
       drivespeed -= 0.1;
     }
-    if(driveCon.getRightBumperPressed() && drivespeed < 1) {
+    if (driveCon.getRightBumperPressed() && drivespeed < 1) {
       drivespeed += 0.1;
     }
 
-   
-    /*if(driveCon.getLeftTriggerAxis() >= deepTrigger){
-      drive.tankDrive(driveCon.getLeftTriggerAxis() * drivespeed, driveCon.getLeftTriggerAxis() * -drivespeed);
-    }
-    else if(driveCon.getRightTriggerAxis() >= deepTrigger){
-      drive.tankDrive(driveCon.getRightTriggerAxis() * -drivespeed, driveCon.getRightTriggerAxis()*drivespeed);
+    if (driveCon.getLeftTriggerAxis() >= 0.1 && driveCon.getRightTriggerAxis() >= 0.1) {
+      drive.tankDrive(0, 0);
     }
 
-    if (Math.abs(driveCon.getLeftY()) > 0.1 || Math.abs(driveCon.getRightY()) > 0.1) {
-      drive.tankDrive(driveCon.getLeftY()*drivespeed, driveCon.getRightY()*drivespeed);
-    } else if(driveCon.getLeftTriggerAxis()<deepTrigger||driveCon.getRightTriggerAxis()<deepTrigger){
-      drive.tankDrive(0, 0);
-    }*/
-    if (driveCon.getLeftTriggerAxis() >0.1) // Handle robot rotation
-    {
-      drive.tankDrive(drivespeed, -drivespeed);
-    }
-    if (driveCon.getRightTriggerAxis() >0.1)
-    {
+    if (driveCon.getLeftTriggerAxis() >= 0.1) {
+      drive.tankDrive(driveCon.getLeftTriggerAxis() * drivespeed, driveCon.getRightTriggerAxis() * -drivespeed);
+    } else if (driveCon.getRightTriggerAxis() >= 0.1) {
       drive.tankDrive(-drivespeed, drivespeed);
     }
-    if (driveCon.getLeftTriggerAxis()<=0.1 && driveCon.getRightTriggerAxis()<=0.1) // If not rotating, drive
-    {   
-      if (Math.abs(driveCon.getLeftY())>0.1 || Math.abs(driveCon.getRightY())>0.1)
-      {
-        drive.tankDrive(driveCon.getLeftY()*drivespeed, driveCon.getRightY()*drivespeed);
-      }
-      else 
-      {
+    // else?\\\\\
+    if (driveCon.getLeftTriggerAxis() < 0.1 && driveCon.getRightTriggerAxis() < 0.1) {
+      if (Math.abs(driveCon.getLeftY()) >= 0.1 || Math.abs(driveCon.getRightY()) >= 0.1) {
+        drive.tankDrive(driveCon.getLeftY() * drivespeed, driveCon.getRightY() * drivespeed);
+      } else {
         drive.tankDrive(0, 0);
       }
     }
-    
-    if (driveCon.getLeftTriggerAxis()>0.1 && driveCon.getRightTriggerAxis()>0.1)
-    {
-      drive.tankDrive(0, 0);
-    }
 
- 
-    if(actionCon.getXButton() || actionCon.getBButton()) {
+    /* ############# ARM AND INTAKE ########### */
+
+    if (takeCon.getXButton() || takeCon.getBButton()) {
       intakeMotor.set(-intakeSpeed);
-    } else if(actionCon.getAButton() || actionCon.getYButton()) {
+    } else if (takeCon.getAButton() || takeCon.getYButton()) {
       intakeMotor.set(intakeSpeed);
     } else {
       intakeMotor.set(0);
     }
 
-    if((actionCon.getYButton() && actionCon.getBButton()) || actionCon.getXButton() && actionCon.getAButton()){
+    // A && B || X && Y
+    if ((takeCon.getYButton() && takeCon.getBButton()) || takeCon.getXButton() && takeCon.getAButton()) {
       intakeMotor.set(0);
     }
 
-    if(actionCon.getLeftBumperPressed() && armSpeed > 0.1){
+    if (takeCon.getLeftBumperPressed() && armSpeed >= 0.3) {
       armSpeed -= 0.1;
     }
-    if(actionCon.getRightBumperPressed() && armSpeed < 1) {
+    if (takeCon.getRightBumperPressed() && armSpeed < 1) {
       armSpeed += 0.1;
     }
 
-    pov = actionCon.getPOV();
-    if(Math.abs(actionCon.getLeftY()) > 0.1) {
-      armMotor.set(actionCon.getLeftY() *armSpeed);
-    } else if(pov == 180 || pov == 225 || pov == 135) {
+    pov = takeCon.getPOV();
+    if (Math.abs(takeCon.getLeftY()) > 0.1) {
+      armMotor.set(takeCon.getLeftY() * armSpeed);
+    } else if (pov == 180 || pov == 225 || pov == 135) {
       armMotor.set(armSpeed);
-    } else if(pov == 0 || pov == 315 || pov == 45) {
+    } else if (pov == 0 || pov == 315 || pov == 45) {
       armMotor.set(-armSpeed);
     } else {
       armMotor.set(0);
     }
-
-    SmartDashboard.putNumber("drive", drivespeed);
-    SmartDashboard.putNumber("intake", intakeSpeed);
-    SmartDashboard.putNumber("arm", armSpeed);
+    SmartDashboard.putNumber("drive speed", drivespeed);
+    SmartDashboard.putNumber("intake speed", intakeSpeed);
+    SmartDashboard.putNumber("arm speed", armSpeed);
   }
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   /** This function is called once when test mode is enabled. */
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 }
