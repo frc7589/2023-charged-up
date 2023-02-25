@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import frc.robot.commands.*;
+import frc.robot.*;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -14,6 +17,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+
+import edu.wpi.first.wpilibj.SPI;
+import com.kauailabs.navx.frc.AHRS;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -30,9 +36,12 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  private XboxController driveCon = new XboxController(0);
-  private XboxController takeCon = new XboxController(1);
-
+  /*
+  `m_nameOfSomething` names are not for constants, use `A_NAME_FOR_CONSTANT` instead 
+  Therefore, I suggest putting these constants into a different file and name it `Constant.java`,
+  so you don't have to make everything CAPS. Also it will make the code look less messy.
+  You should have learnt how to do that in class, so you might want to do it as quickly as possible.
+  */
   private static final int m_intake = 1; // 手掌馬達&編號
   private static final int m_arm = 2; // 手臂馬達&編號
 
@@ -41,14 +50,17 @@ public class Robot extends TimedRobot {
   private static final int m_rightRear = 9;
   private static final int m_leftRear = 7;
 
-  private CANSparkMax intakeMotor = new CANSparkMax(m_intake, MotorType.kBrushless);
-  private CANSparkMax armMotor = new CANSparkMax(m_arm, MotorType.kBrushless);
-
   private double intakeSpeed = 0.2; // intake initial speed
   private double armSpeed = 0.2; // arm initial speed
-  private double drivespeed = 0.2; // car initial
+  private double drivespeed = 0.2; // car initial speed
 
   private int pov;
+
+  private XboxController driveCon;
+  private XboxController takeCon;
+
+  private CANSparkMax intakeMotor;
+  private CANSparkMax armMotor;
 
   private WPI_VictorSPX motorRightRear;
   private WPI_VictorSPX motorRightFront;
@@ -58,6 +70,10 @@ public class Robot extends TimedRobot {
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
   private DifferentialDrive drive;
+
+  private AHRS ahrs;
+
+  private AutonomousDrive autoCommands;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -69,6 +85,9 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+    driveCon = new XboxController(0);
+    takeCon = new XboxController(1);
 
     intakeMotor = new CANSparkMax(m_intake, MotorType.kBrushless);
     armMotor = new CANSparkMax(m_arm, MotorType.kBrushless);
@@ -83,6 +102,10 @@ public class Robot extends TimedRobot {
     drive = new DifferentialDrive(leftGroup, rightGroup);
 
     leftGroup.setInverted(true); // 左馬達組啟用反轉
+
+    ahrs = new AHRS(SPI.Port.kMXP);
+
+    autoCommands = new AutonomousDrive(drive, armMotor, intakeMotor, ahrs, AutonomousDrive.B1);
   }
 
   /**
@@ -121,20 +144,14 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+
+    autoCommands.initialize();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+    autoCommands.execute();
   }
 
   /** This function is called once when teleop is enabled. */
@@ -145,7 +162,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // ########## CAR ##########
+    /* ########## CAR ########## */
 
     if (driveCon.getLeftBumperPressed() && drivespeed >= 0.3) {
       drivespeed -= 0.1;
@@ -193,6 +210,7 @@ public class Robot extends TimedRobot {
     if (takeCon.getRightBumperPressed() && armSpeed < 1) {
       armSpeed += 0.1;
     }
+    
     // (arm)
     pov = takeCon.getPOV();
     if (Math.abs(takeCon.getLeftY()) > 0.1) {
