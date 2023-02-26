@@ -19,7 +19,6 @@ public class AutonomousDrive extends CommandBase {
     private int stage = 1;
     private long startingTime = 0;
     private long tick;
-    private double startingPitch;
 
     public static final int B1 = 1, B2 = 2, B3 = 3, R1 = 4, R2 = 5, R3 = 6;
 
@@ -50,7 +49,6 @@ public class AutonomousDrive extends CommandBase {
     @Override
     public void initialize() {
         startingTime = System.currentTimeMillis();
-        startingPitch = ahrs.getPitch();
     }
 
     @Override
@@ -106,7 +104,7 @@ public class AutonomousDrive extends CommandBase {
             if (tick > 6000) stage++;
         break;
         case 6: // try to get ENGAGED
-            double speed = drivePID.calculate(ahrs.getPitch(), startingPitch);
+            double speed = drivePID.calculate(ahrs.getAngle(), 0);
             m_drive.tankDrive(speed, speed);
         break;
         default:
@@ -141,7 +139,7 @@ public class AutonomousDrive extends CommandBase {
             if (tick > 6000) stage++;
         break;
         case 6: // try to get ENGAGED 
-            double speed = drivePID.calculate(ahrs.getPitch(), startingPitch);
+            double speed = drivePID.calculate(ahrs.getAngle(), 0);
             m_drive.tankDrive(speed, speed);
         break;
         default:
@@ -172,7 +170,7 @@ public class AutonomousDrive extends CommandBase {
             if (tick > 6000) stage++;
         break;
         case 6: // try to get ENGAGED 
-            double speed = drivePID.calculate(ahrs.getPitch(), startingPitch);
+            double speed = drivePID.calculate(ahrs.getAngle(), 0);
             m_drive.tankDrive(speed, speed);
         break;
         default:
@@ -207,7 +205,7 @@ public class AutonomousDrive extends CommandBase {
             if (tick > 6000) stage++;
         break;
         case 6: // try to get ENGAGED
-            double speed = drivePID.calculate(ahrs.getPitch(), startingPitch);
+            double speed = drivePID.calculate(ahrs.getAngle(), 0);
             m_drive.tankDrive(speed, speed);
         break;
         default:
