@@ -45,14 +45,14 @@ public class Robot extends TimedRobot {
   private static final int m_intake = 1; // 手掌馬達&編號
   private static final int m_arm = 2; // 手臂馬達&編號
 
-  private static final int m_rightFront = 1;
-  private static final int m_leftFront = 11;
-  private static final int m_rightRear = 9;
-  private static final int m_leftRear = 7;
+  private static final int m_rightFront = 7;
+  private static final int m_leftFront = 9;
+  private static final int m_rightRear = 8;
+  private static final int m_leftRear = 1;
 
-  private double intakeSpeed = 0.2; // intake initial speed
+  private double intakeSpeed = 0.6; // intake initial speed
   private double armSpeed = 0.2; // arm initial speed
-  private double drivespeed = 0.2; // car initial speed
+  private double drivespeed = 0.4; // car initial speed
 
   private int pov;
 
@@ -214,11 +214,11 @@ public class Robot extends TimedRobot {
     // (arm)
     pov = takeCon.getPOV();
     if (Math.abs(takeCon.getLeftY()) > 0.1) {
-      armMotor.set(takeCon.getLeftY() * armSpeed);
+      armMotor.set(takeCon.getLeftY() * -armSpeed);
     } else if (pov == 180 || pov == 225 || pov == 135) {
-      armMotor.set(armSpeed);
-    } else if (pov == 0 || pov == 315 || pov == 45) {
       armMotor.set(-armSpeed);
+    } else if (pov == 0 || pov == 315 || pov == 45) {
+      armMotor.set(armSpeed);
     } else {
       armMotor.set(0);
     }
