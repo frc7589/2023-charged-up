@@ -70,6 +70,10 @@ public class Robot extends TimedRobot {
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
   private DifferentialDrive drive;
+  
+  private final double t = 0.9;
+  private boolean RTriggerPushStat = false;
+  private boolean LTriggerPushStat = false;
 
   private AHRS ahrs;
 
@@ -164,7 +168,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     /* ########## CAR ########## */
 
-    if (driveCon.getLeftBumperPressed() && drivespeed >= 0.3) {
+    if (driveCon.getLeftBumperPressed() && drivespeed >= 0.5) {
       drivespeed -= 0.1;
     }
     if (driveCon.getRightBumperPressed() && drivespeed < 1) {
@@ -178,11 +182,10 @@ public class Robot extends TimedRobot {
     if (driveCon.getLeftTriggerAxis() >= 0.1) {
       drive.tankDrive(driveCon.getLeftTriggerAxis() * drivespeed, driveCon.getRightTriggerAxis() * -drivespeed);
     } else if (driveCon.getRightTriggerAxis() >= 0.1) {
-      drive.tankDrive(-drivespeed, drivespeed);
-    }
-
-    if (driveCon.getLeftTriggerAxis() < 0.1 && driveCon.getRightTriggerAxis() < 0.1) {
-      if (Math.abs(driveCon.getLeftY()) >= 0.1 || Math.abs(driveCon.getRightY()) >= 0.1) {
+      drive.tankDrive(driveCon.getRightTriggerAxis() * -drivespeed, driveCon.getRightTriggerAxis() * drivespeed);
+    } else if (driveCon.getLeftTriggerAxis() < 0.1 && driveCon.getRightTriggerAxis() < 0.1) {
+     
+    if (Math.abs(driveCon.getLeftY()) >= 0.1 || Math.abs(driveCon.getRightY()) >= 0.1) {
         drive.tankDrive(driveCon.getLeftY() * drivespeed, driveCon.getRightY() * drivespeed);
       } else {
         drive.tankDrive(0, 0);
@@ -221,6 +224,24 @@ public class Robot extends TimedRobot {
       armMotor.set(armSpeed);
     } else {
       armMotor.set(0);
+    }
+    
+    
+    double LTrigger = takeCon.getLeftTriggerAxis();
+    double RTrigger = takeCon.getRightTriggerAxis();
+
+    if ((RTrigger > t && !RTriggerPushStat) && intakeSpeed <= 0.9) {
+      intakeSpeed += 0.1;
+      RTriggerPushStat = true;
+    } else if (RTrigger <= t && RTriggerPushStat) {
+      RTriggerPushStat = false;
+    }
+
+    if ((LTrigger > t && !LTriggerPushStat) && intakeSpeed >= 0.2) {
+      intakeSpeed -= 0.1;
+      LTriggerPushStat = true;
+    } else if (LTrigger <= t && LTriggerPushStat) {
+      RTriggerPushStat = false;
     }
     SmartDashboard.putNumber("drive speed", drivespeed);
     SmartDashboard.putNumber("intake speed", intakeSpeed);
