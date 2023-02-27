@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import frc.robot.commands.*;
-import frc.robot.*;
-
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -17,9 +14,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-
-import edu.wpi.first.wpilibj.SPI;
-import com.kauailabs.navx.frc.AHRS;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,31 +30,26 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  /*
-  `m_nameOfSomething` names are not for constants, use `A_NAME_FOR_CONSTANT` instead 
-  Therefore, I suggest putting these constants into a different file and name it `Constant.java`,
-  so you don't have to make everything CAPS. Also it will make the code look less messy.
-  You should have learnt how to do that in class, so you might want to do it as quickly as possible.
-  */
-  private static final int m_intake = 1; // 手掌馬達&編號
-  private static final int m_arm = 2; // 手臂馬達&編號
+  private XboxController driveCon = new XboxController(0);
+  private XboxController takeCon = new XboxController(1);
+
+  private static final int m_intake = 2; // 手掌馬達&編號
+  private static final int m_arm = 3; // 手臂馬達&編號
 
   private static final int m_rightFront = 7;
   private static final int m_leftFront = 9;
   private static final int m_rightRear = 8;
   private static final int m_leftRear = 1;
 
-  private double intakeSpeed = 0.6; // intake initial speed
-  private double armSpeed = 0.2; // arm initial speed
-  private double drivespeed = 0.4; // car initial speed
-
-  private int pov;
-
-  private XboxController driveCon;
-  private XboxController takeCon;
-
   private CANSparkMax intakeMotor;
   private CANSparkMax armMotor;
+
+  private double intakeSpeedPull = 0.6; // intake initial speed
+  private double intakeSpeedPush = 0.8;
+  private double armSpeed = 0.4; // arm initial speed
+  private double drivespeed = 0.5; // car initial speed
+
+  private int pov;
 
   private WPI_VictorSPX motorRightRear;
   private WPI_VictorSPX motorRightFront;
@@ -70,14 +59,8 @@ public class Robot extends TimedRobot {
   private MotorControllerGroup leftGroup;
   private MotorControllerGroup rightGroup;
   private DifferentialDrive drive;
-  
-  private final double t = 0.9;
-  private boolean RTriggerPushStat = false;
-  private boolean LTriggerPushStat = false;
 
-  private AHRS ahrs;
-
-  private AutonomousDrive autoCommands;
+  // private boolean LeftYPushStat = false;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -89,9 +72,6 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
-
-    driveCon = new XboxController(0);
-    takeCon = new XboxController(1);
 
     intakeMotor = new CANSparkMax(m_intake, MotorType.kBrushless);
     armMotor = new CANSparkMax(m_arm, MotorType.kBrushless);
@@ -107,9 +87,10 @@ public class Robot extends TimedRobot {
 
     leftGroup.setInverted(true); // 左馬達組啟用反轉
 
-    ahrs = new AHRS(SPI.Port.kMXP);
-
-    autoCommands = new AutonomousDrive(drive, armMotor, intakeMotor, ahrs, AutonomousDrive.B1);
+    SmartDashboard.putNumber("drive speed", 0.5);
+    drivespeed = SmartDashboard.getNumber("drive speed", 0.5);
+    SmartDashboard.putNumber("arm speed", 0.5);
+    armSpeed = SmartDashboard.getNumber("arm speed", 0.5);
   }
 
   /**
@@ -148,14 +129,20 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
-
-    autoCommands.initialize();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    autoCommands.execute();
+    switch (m_autoSelected) {
+      case kCustomAuto:
+        // Put custom auto code here
+        break;
+      case kDefaultAuto:
+      default:
+        // Put default auto code here
+        break;
+    }
   }
 
   /** This function is called once when teleop is enabled. */
@@ -166,57 +153,50 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    /* ########## CAR ########## */
-
+    // ########## CAR ##########
+    drivespeed = SmartDashboard.getNumber("drive speed", drivespeed);
     if (driveCon.getLeftBumperPressed() && drivespeed >= 0.5) {
       drivespeed -= 0.1;
-    }
-    if (driveCon.getRightBumperPressed() && drivespeed < 1) {
+      SmartDashboard.putNumber("drive speed", drivespeed);
+    } else if (driveCon.getRightBumperPressed() && drivespeed <= 0.9) {
       drivespeed += 0.1;
+      SmartDashboard.putNumber("drive speed", drivespeed);
     }
 
     if (driveCon.getLeftTriggerAxis() >= 0.1 && driveCon.getRightTriggerAxis() >= 0.1) {
       drive.tankDrive(0, 0);
-    }
-
-    if (driveCon.getLeftTriggerAxis() >= 0.1) {
+    } else if (driveCon.getLeftTriggerAxis() >= 0.1) {
       drive.tankDrive(driveCon.getLeftTriggerAxis() * drivespeed, driveCon.getRightTriggerAxis() * -drivespeed);
     } else if (driveCon.getRightTriggerAxis() >= 0.1) {
       drive.tankDrive(driveCon.getRightTriggerAxis() * -drivespeed, driveCon.getRightTriggerAxis() * drivespeed);
-    } else if (driveCon.getLeftTriggerAxis() < 0.1 && driveCon.getRightTriggerAxis() < 0.1) {
-     
+    }
+
     if (Math.abs(driveCon.getLeftY()) >= 0.1 || Math.abs(driveCon.getRightY()) >= 0.1) {
-        drive.tankDrive(driveCon.getLeftY() * drivespeed, driveCon.getRightY() * drivespeed);
-      } else {
-        drive.tankDrive(0, 0);
-      }
+      drive.tankDrive(driveCon.getLeftY() * drivespeed, driveCon.getRightY() * drivespeed);
+    } else {
+      drive.tankDrive(0, 0);
     }
 
     /* ############# ARM AND INTAKE ########### */
 
-    if (takeCon.getXButton() || takeCon.getBButton()) {
-      intakeMotor.set(-intakeSpeed);
-    } else if (takeCon.getAButton() || takeCon.getYButton()) {
-      intakeMotor.set(intakeSpeed);
+    // A && B || X && Y (intake)
+    if (takeCon.getXButton()) {
+      intakeMotor.set(intakeSpeedPull);
+    } else if (takeCon.getBButton()) {
+      intakeMotor.set(intakeSpeedPush);
+    } else if (takeCon.getAButton()) {
+      intakeMotor.set(-intakeSpeedPush);
+    } else if (takeCon.getYButton()) {
+      intakeMotor.set(-intakeSpeedPull);
     } else {
       intakeMotor.set(0);
     }
 
-    // A && B || X && Y (intake)
-    if ((takeCon.getYButton() && takeCon.getBButton()) || takeCon.getXButton() && takeCon.getAButton()) {
-      intakeMotor.set(0);
-    }
-
-    if (takeCon.getLeftBumperPressed() && armSpeed >= 0.3) {
-      armSpeed -= 0.1;
-    }
-    if (takeCon.getRightBumperPressed() && armSpeed < 1) {
-      armSpeed += 0.1;
-    }
-    
     // (arm)
     pov = takeCon.getPOV();
-    if (Math.abs(takeCon.getLeftY()) > 0.1) {
+    // double LeftY = takeCon.getLeftY();
+
+    if (Math.abs(takeCon.getLeftY()) >= 0.1) {
       armMotor.set(takeCon.getLeftY() * -armSpeed);
     } else if (pov == 180 || pov == 225 || pov == 135) {
       armMotor.set(-armSpeed);
@@ -225,27 +205,20 @@ public class Robot extends TimedRobot {
     } else {
       armMotor.set(0);
     }
-    
-    
-    double LTrigger = takeCon.getLeftTriggerAxis();
-    double RTrigger = takeCon.getRightTriggerAxis();
-
-    if ((RTrigger > t && !RTriggerPushStat) && intakeSpeed <= 0.9) {
-      intakeSpeed += 0.1;
-      RTriggerPushStat = true;
-    } else if (RTrigger <= t && RTriggerPushStat) {
-      RTriggerPushStat = false;
+    armSpeed = SmartDashboard.getNumber("arm speed", armSpeed);
+    if (takeCon.getLeftBumperPressed() && armSpeed >= 0.3) {
+      armSpeed -= 0.1;
+      SmartDashboard.putNumber("arm speed", armSpeed);
+    } else if (takeCon.getRightBumperPressed() && armSpeed < 1) {
+      armSpeed += 0.1;
+      SmartDashboard.putNumber("arm speed", armSpeed);
     }
 
-    if ((LTrigger > t && !LTriggerPushStat) && intakeSpeed >= 0.2) {
-      intakeSpeed -= 0.1;
-      LTriggerPushStat = true;
-    } else if (LTrigger <= t && LTriggerPushStat) {
-      RTriggerPushStat = false;
-    }
-    SmartDashboard.putNumber("drive speed", drivespeed);
-    SmartDashboard.putNumber("intake speed", intakeSpeed);
-    SmartDashboard.putNumber("arm speed", armSpeed);
+    SmartDashboard.putNumber("arm motor temp", armMotor.getMotorTemperature());
+    SmartDashboard.putNumber("intake motor temp", intakeMotor.getMotorTemperature());
+    SmartDashboard.putNumber("intake speed push", intakeSpeedPush);
+    SmartDashboard.putNumber("intake speed pull", intakeSpeedPull);
+
   }
 
   /** This function is called once when the robot is disabled. */
@@ -266,6 +239,17 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
+    double tata = 0.5;
+    if (takeCon.getAButtonPressed()) {
+      armMotor.set(tata);
+    } else if (takeCon.getXButtonPressed()) {
+      armMotor.set(0);
+    }
+    if (takeCon.getBButtonPressed()) {
+      intakeMotor.set(tata);
+    } else if (takeCon.getYButtonPressed()) {
+      intakeMotor.set(0);
+    }
   }
 
   /** This function is called once when the robot is first started up. */
