@@ -7,10 +7,9 @@ package frc.robot;
 import frc.robot.commands.*;
 import frc.robot.*;
 
-import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
-import edu.wpi.first.cscore.MjpegServer;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -45,8 +44,7 @@ public class Robot extends TimedRobot {
   private XboxController takeCon;
 
   /*
-   * `m_nameOfSomething` is not a name for constants, use `A_CONSTANT_NAME` instead
-   * Therefore, I suggest moving these constant variables to `Constants.java`,
+   * I suggest moving these constant variables to `Constants.java`,
    * so you don't have to make everything CAPS. Also it will make the code less messy.
    * You should have learnt how to do that in class, you might want to do this as quickly as possible.
    */
@@ -81,9 +79,8 @@ public class Robot extends TimedRobot {
 
   private AutonomousDrive autoCommand;
 
-  private UsbCamera camera;
-  private MjpegServer mjpegServer;
   private CvSink cvSink;
+  private CvSource outputStream;
 
   private long startingTime;
 
@@ -121,13 +118,9 @@ public class Robot extends TimedRobot {
 
     autoCommand = new AutonomousDrive(drive, armMotor, intakeMotor, ahrs, AutonomousDrive.B1);
 
-    /*
-    camera = new UsbCamera("USB Camera 0", 0);
-    mjpegServer = new MjpegServer("server_USB Camera 0", 1181);
-    mjpegServer.setSource(camera);
-    cvSink = new CvSink("opencv_USB Camera 0");
-    cvSink.setSource(camera);
-    */
+    CameraServer.startAutomaticCapture();
+    cvSink = CameraServer.getVideo();
+    outputStream = CameraServer.putVideo("intake camera", 640, 480);
 
     SmartDashboard.putNumber("drive speed", 0.5);
     drivespeed = SmartDashboard.getNumber("drive speed", 0.5);
@@ -215,6 +208,8 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("drive speed", drivespeed);
     }
 
+    // I highly doubt it is necessary to make it drive at 0 speed when both triggers are pressed
+    // Like in most games, when you press both w and s, it usually move either up or down and not stop moving 
     double driveConLeftTrigger = driveCon.getLeftTriggerAxis();
     double driveConRightTrigger = driveCon.getRightTriggerAxis();
     if (driveConLeftTrigger >= 0.1 && driveConRightTrigger >= 0.1) {
@@ -252,7 +247,6 @@ public class Robot extends TimedRobot {
     pov = takeCon.getPOV();
     double LeftY = takeCon.getLeftY();
 
-    // why not just invert the motor?
     if (Math.abs(LeftY) >= 0.1) {
       armMotor.set(LeftY * -armSpeed);
     } else if (pov == 180 || pov == 225 || pov == 135) {
