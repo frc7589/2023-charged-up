@@ -120,7 +120,6 @@ public class Robot extends TimedRobot {
 
     CameraServer.startAutomaticCapture();
     cvSink = CameraServer.getVideo();
-    outputStream = CameraServer.putVideo("intake camera", 640, 480);
 
     SmartDashboard.putNumber("drive speed", 0.5);
     drivespeed = SmartDashboard.getNumber("drive speed", 0.5);
@@ -182,12 +181,7 @@ public class Robot extends TimedRobot {
         break;
     }
 
-    // autoCommand.execute();
-    if (System.currentTimeMillis() - startingTime < 800)
-      drive.tankDrive(1, 1);
-    else if (System.currentTimeMillis() - startingTime < 1500)
-      drive.tankDrive(-0.6, 0.6);
-    else drive.tankDrive(0, 0);
+    autoCommand.execute();
   }
 
   /** This function is called once when teleop is enabled. */
@@ -230,7 +224,8 @@ public class Robot extends TimedRobot {
 
     /* ############# ARM AND INTAKE ########### */
 
-    // A && B || X && Y (intake)
+    // X - pull cube, Y - pull cone
+    // A - push cube, B - push cone
     if (takeCon.getXButton()) {
       intakeMotor.set(intakeSpeedPull);
     } else if (takeCon.getBButton()) {
