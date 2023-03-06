@@ -65,9 +65,16 @@ public class AutonomousDrive extends CommandBase {
 
     @Override
     public void execute() {
-        if (System.currentTimeMillis() - startingTime > 15000) return;
+        if (System.currentTimeMillis() - startingTime > 15000)
+            return;
+
+        // temp
+        if (stage > 7)
+            return;
 
         tick = System.currentTimeMillis() - currentTime;
+
+        System.out.println(this.stage);
 
         switch (startingPosition) {
         case B1:
@@ -110,7 +117,7 @@ public class AutonomousDrive extends CommandBase {
             }
         break;
         case 3:
-            if (tick > 100) this.nextStage();
+            if (tick > 200) this.nextStage();
         break;
         case 4:
             // cone +, cube -
@@ -122,34 +129,42 @@ public class AutonomousDrive extends CommandBase {
         break;
         case 5:
             m_drive.tankDrive(0.8, 0.8);
-            if (tick > 500) this.nextStage();
+            if (tick > 500)
+                this.nextStage();
+        break;
         case 6:
             m_arm.set(-0.5);
             m_drive.tankDrive(0.8, 0.8);
             if (tick > 1000) {
                 m_arm.set(0);
-                m_drive.tankDrive(0, 0);
                 this.nextStage();
             }
         break;
         case 7:
-            if (this.rotateDrive(-90)) this.nextStage();
+            m_drive.tankDrive(0.8, 0.8);
+            if (tick > 1300) this.nextStage();
         break;
         case 8:
-            m_drive.tankDrive(1, 1);
-            if (tick > 400) this.nextStage();
-        break;
-        case 9:
             if (this.rotateDrive(-90)) this.nextStage();
         break;
-        case 10:
+        case 9:
             m_drive.tankDrive(1, 1);
-            if (ahrs.getPitch() - this.startingPitch > 11) {
+            if (tick > 800) this.nextStage();
+        break;  
+        case 10:
+            if (this.rotateDrive(-90)) this.nextStage();
+        break;
+        case 11:
+            m_drive.tankDrive(0.8, 0.8);
+            System.out.println(ahrs.getPitch() - this.startingPitch);
+            if (ahrs.getPitch() - this.startingPitch < -4) {
+                m_drive.tankDrive(0, 0);
                 this.nextStage();
             }
         break;
-        case 11:
-            this.doBalance();
+        case 12:
+            
+            // this.doBalance();
         break;
         }
     }
@@ -170,8 +185,7 @@ public class AutonomousDrive extends CommandBase {
             System.out.println(ahrs.getRawGyroZ());
         break;
         case 3: // move forward
-            m_drive.tankDrive(0.5,
-             0.5);
+            m_drive.tankDrive(0.5, 0.5);
             if (tick > 2000) this.nextStage();
         break;
         case 4: // rotate right
@@ -269,13 +283,12 @@ public class AutonomousDrive extends CommandBase {
     }
 
     /**
-     * 
      * @param degree the degree you want the drive to turn
      * @return       return whether or not the drive is at the correct degree
      */
     public boolean rotateDrive(int degree) {
         double speed = drivePID.calculate(this.getZAngle(), degree);
         m_drive.tankDrive(-speed, speed);
-        return Math.abs(ahrs.getRawGyroZ()) < ((degree > 0)? 30: -30) && tick > 300;
+        return Math.abs(speed) < 0.1 && tick > 300;
     }
 }
