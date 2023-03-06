@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
    * so you don't have to make everything CAPS. Also it will make the code less messy.
    * You should have learnt how to do that in class, you might want to do this as quickly as possible.
    */
-  private static final int INTAKE_ID = 2; // 手掌馬達&編號
+  private static final int INTAKE_ID = 6; // 手掌馬達&編號
   private static final int ARM_ID = 3; // 手臂馬達&編號
 
   private static final int RIGHT_FRONT_ID = 7;
@@ -281,14 +281,11 @@ public class Robot extends TimedRobot {
   /** This function is called once when test mode is enabled. */
   @Override
   public void testInit() {
-    autoCommand.initialize();
-    autoCommand.nextStage();
   }
 
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
-    autoCommand.doBalance();
   }
 
   /** This function is called once when the robot is first started up. */
