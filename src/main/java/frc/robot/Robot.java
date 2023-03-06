@@ -60,7 +60,7 @@ public class Robot extends TimedRobot {
   private CANSparkMax armMotor;
 
   private double intakeSpeedPull = 0.6; // intake initial speed
-  private double intakeSpeedPush = 0.8;
+  private double intakeSpeedPush = 0.6;
   private double armSpeed = 0.4; // arm initial speed
   private double drivespeed = 0.5; // car initial speed
 
