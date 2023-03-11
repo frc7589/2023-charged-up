@@ -12,6 +12,7 @@ public class AutonomousDrive extends CommandBase {
     private final AHRS ahrs;
     private final double wheelSize;
     private final PIDController drivePID = new PIDController(0.01, 0.00001, 0.0);
+    private final boolean doEngage;
 
     private final double driveWheelCircumference = 47.4694649957;
     private final int startingPosition;
@@ -20,7 +21,7 @@ public class AutonomousDrive extends CommandBase {
     private long startingTime = 0;
     private long currentTime = 0;
     private long tick;
-    private double startingPitch;
+    private double startingRoll;
     private double currentAngle;
 
     public static final int B1 = 1, B2 = 2, B3 = 3, R1 = 4, R2 = 5, R3 = 6;
@@ -37,29 +38,31 @@ public class AutonomousDrive extends CommandBase {
      * @param arm    the neo motor that controls the arm
      * @param intake the neo motor that controls the intake, also this is like the
      *               laziest javadoc ever istg
-     * @param pos    indicating the initial position of the drive, use `AutonomousDrive.B1`, `AutonomousDrive.R3` etc
+     * @param ahrs   the ahrs, obviously
+     * @param pos    the initial position of the drive, use `AutonomousDrive.B1`, `AutonomousDrive.R3` etc
+     * @param dock   determine whether or not the robot should get on the charge station
      */
-    public AutonomousDrive(DifferentialDrive drive, CANSparkMax arm, CANSparkMax intake, AHRS t, int pos) { 
+    public AutonomousDrive(DifferentialDrive drive, CANSparkMax arm, CANSparkMax intake, AHRS ahrs, int pos, boolean dock) { 
         m_drive = drive;
         m_arm = arm;
         m_intake = intake;
-        ahrs = t;
+        this.ahrs = ahrs;
         startingPosition = pos;
-
-        drivePID.setTolerance(10, 10);
 
         ahrs.reset();
 
         wheelSize = driveWheelCircumference;
+
+        doEngage = dock;
     }
 
     @Override
     public void initialize() {
         startingTime = System.currentTimeMillis();
         currentTime = startingTime;
-        startingPitch = ahrs.getPitch();
+        startingRoll = ahrs.getRoll();
         currentAngle = ahrs.getAngle();
-        stage = 1;
+        stage = 11;
         tick = 0;
     }
 
@@ -68,13 +71,9 @@ public class AutonomousDrive extends CommandBase {
         if (System.currentTimeMillis() - startingTime > 15000)
             return;
 
-        // temp
-        if (stage > 7)
-            return;
-
         tick = System.currentTimeMillis() - currentTime;
 
-        System.out.println(this.stage);
+        // System.out.println(this.stage);
 
         switch (startingPosition) {
         case B1:
@@ -102,24 +101,24 @@ public class AutonomousDrive extends CommandBase {
 
     private void B1drive() {
         switch (stage) {
-        case 1:
+        case 1: // raise the arm
             m_arm.set(0.6);
             if (tick > 1200) {
                 m_arm.set(0);
                 this.nextStage();
             }
         break;
-        case 2:
+        case 2: // move towards to the GRIDs
             m_drive.tankDrive(-0.7, -0.7);
             if (tick > 600) {
                 m_drive.tankDrive(0, 0);
                 this.nextStage();
             }
         break;
-        case 3:
+        case 3: // still moving but the motor isn't powered
             if (tick > 200) this.nextStage();
         break;
-        case 4:
+        case 4: // put down the cube
             // cone +, cube -
             m_intake.set(-0.8);
             if (tick > 800) {
@@ -127,12 +126,12 @@ public class AutonomousDrive extends CommandBase {
                 this.nextStage();
             }
         break;
-        case 5:
+        case 5: // move backwards to leave the community
             m_drive.tankDrive(0.8, 0.8);
             if (tick > 500)
                 this.nextStage();
         break;
-        case 6:
+        case 6: // still moving backwards but also lower the arm
             m_arm.set(-0.5);
             m_drive.tankDrive(0.8, 0.8);
             if (tick > 1000) {
@@ -140,32 +139,40 @@ public class AutonomousDrive extends CommandBase {
                 this.nextStage();
             }
         break;
-        case 7:
+        case 7: // leaving community
             m_drive.tankDrive(0.8, 0.8);
             if (tick > 1300) this.nextStage();
         break;
-        case 8:
+        case 8: // turn left/right
+            if (!doEngage) {
+                stage += 100;
+                break;
+            }
             if (this.rotateDrive(-90)) this.nextStage();
         break;
-        case 9:
+        case 9: // go to the front of the CHARGE STATION
             m_drive.tankDrive(1, 1);
             if (tick > 800) this.nextStage();
         break;  
-        case 10:
+        case 10: // turn again
             if (this.rotateDrive(-90)) this.nextStage();
         break;
-        case 11:
-            m_drive.tankDrive(0.8, 0.8);
-            System.out.println(ahrs.getPitch() - this.startingPitch);
-            if (ahrs.getPitch() - this.startingPitch < -4) {
+        case 11: // move onto the CHARGE STATION
+            m_drive.tankDrive(1, 1);
+            System.out.println(this.getCurrentRoll());
+            if (this.getCurrentRoll() > 10) {
                 m_drive.tankDrive(0, 0);
                 this.nextStage();
             }
+            if (tick > 1000) stage += 100;
         break;
         case 12:
-            
-            // this.doBalance();
+            m_drive.tankDrive(0.65, 0.65);
+            System.out.println(ahrs.getRawGyroX());
+            System.out.println(ahrs.getRawGyroY());
+            System.out.println(ahrs.getRawGyroZ());
         break;
+        default: break;
         }
     }
 
@@ -277,14 +284,18 @@ public class AutonomousDrive extends CommandBase {
         return ahrs.getAngle() - currentAngle;
     }
 
+    private double getCurrentRoll() {
+        return ahrs.getRoll() - this.startingRoll;
+    }
+
     public void doBalance() {
-        double speed = drivePID.calculate(ahrs.getPitch(), startingPitch);
+        double speed = drivePID.calculate(ahrs.getRoll(), startingRoll);
         m_drive.tankDrive(speed, speed);
     }
 
     /**
      * @param degree the degree you want the drive to turn
-     * @return       return whether or not the drive is at the correct degree
+     * @return       return whether or not the drive is at the correct angle
      */
     public boolean rotateDrive(int degree) {
         double speed = drivePID.calculate(this.getZAngle(), degree);
