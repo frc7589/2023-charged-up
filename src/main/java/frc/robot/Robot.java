@@ -7,10 +7,6 @@ package frc.robot;
 import frc.robot.commands.*;
 import frc.robot.*;
 
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.CvSink;
-import edu.wpi.first.cscore.CvSource;
-
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -79,11 +75,6 @@ public class Robot extends TimedRobot {
 
   private AutonomousDrive autoCommand;
 
-  private CvSink cvSink;
-  private CvSource outputStream;
-
-  private long startingTime;
-
   // private boolean LeftYPushStat = false;
 
   /**
@@ -117,9 +108,6 @@ public class Robot extends TimedRobot {
     ahrs = new AHRS(SPI.Port.kMXP);
 
     autoCommand = new AutonomousDrive(drive, armMotor, intakeMotor, ahrs, AutonomousDrive.B1);
-
-    CameraServer.startAutomaticCapture();
-    cvSink = CameraServer.getVideo();
 
     SmartDashboard.putNumber("drive speed", 0.5);
     drivespeed = SmartDashboard.getNumber("drive speed", 0.5);
@@ -165,7 +153,6 @@ public class Robot extends TimedRobot {
     System.out.println("Auto selected: " + m_autoSelected);
 
     autoCommand.initialize();
-    startingTime = System.currentTimeMillis();
   }
 
   /** This function is called periodically during autonomous. */
