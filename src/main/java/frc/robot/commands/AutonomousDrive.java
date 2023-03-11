@@ -76,30 +76,21 @@ public class AutonomousDrive extends CommandBase {
         // System.out.println(this.stage);
 
         switch (startingPosition) {
-        case B1:
-            this.B1drive();
+        case B1: case R3:
+            this.B1R3drive();
         break;
-        case B2:
-            this.B2drive();
+        case B2: case R2:
+            this.B2R2drive();
         break;
-        case B3:
-            this.B3drive();
-        break;
-        case R1:
-            this.R1drive();
-        break;
-        case R2:
-            this.R2drive();
-        break;
-        case R3:
-            this.R3drive();
+        case B3: case R1:
+            this.B3R1drive();
         break;
         default:
         break;
         }
     }
 
-    private void B1drive() {
+    private void B1R3drive() {
         switch (stage) {
         case 1: // raise the arm
             m_arm.set(0.6);
@@ -158,29 +149,33 @@ public class AutonomousDrive extends CommandBase {
             if (this.rotateDrive(-90)) this.nextStage();
         break;
         case 11: // move onto the CHARGE STATION
-            m_drive.tankDrive(1, 1);
+            m_drive.tankDrive(0.9, 0.9);
             System.out.println(this.getCurrentRoll());
             if (this.getCurrentRoll() > 10) {
                 m_drive.tankDrive(0, 0);
                 this.nextStage();
             }
-            if (tick > 1000) stage += 100;
         break;
         case 12:
-            m_drive.tankDrive(0.65, 0.65);
-            System.out.println(ahrs.getRawGyroX());
-            System.out.println(ahrs.getRawGyroY());
-            System.out.println(ahrs.getRawGyroZ());
+            double roll = this.getCurrentRoll();
+            System.out.println(roll);
+            if (roll > 5) {
+                m_drive.tankDrive(0.6, 0.6);
+            } else if (roll < -5) {
+                m_drive.tankDrive(-0.5, -0.5);
+            } else {
+                m_drive.tankDrive(0, 0);
+            }
         break;
         default: break;
         }
     }
 
-    private void B2drive() {
+    private void B2R2drive() {
         System.out.println("autonomous drive for B2 position is still being worked in progress");
     }
 
-    private void B3drive() {
+    private void B3R1drive() {
         switch (stage) {
         case 1: // move forward
             m_drive.tankDrive(0.5, 0.5);
@@ -209,70 +204,6 @@ public class AutonomousDrive extends CommandBase {
         }
     }
 
-    private void R1drive() {
-        switch (stage) {
-        case 1: // move forward
-            m_drive.tankDrive(1, 1);
-            if (tick > 2000) this.nextStage();
-        break;
-        case 2: // rotate right
-            m_drive.tankDrive(1, -1);
-            if (this.getZAngle() > 90) this.nextStage();
-        break;
-        case 3: // move forward
-            m_drive.tankDrive(1, 1);
-            if (tick > 1000) this.nextStage();
-        break;
-        case 4: // rotate right
-            m_drive.tankDrive(1, -1);
-            if (this.getZAngle() > 90) this.nextStage();
-        break;
-        case 5: // try to get DOCKED
-            m_drive.tankDrive(1, 1);
-            if (tick > 2000) this.nextStage();
-        break;
-        case 6: // try to get ENGAGED
-            this.doBalance();
-        break;
-        default:
-        break;
-        }
-    }
-
-    private void R2drive() {
-        System.out.println("autonomous drive for R2 position is still being worked in progress");
-    }
-
-    private void R3drive() {
-        switch (stage) {
-            case 1: // move forward
-                m_drive.tankDrive(1, 1);
-                if (tick > 2000) this.nextStage();
-                break;
-            case 2: // rotate left
-                m_drive.tankDrive(-1, 1);
-                if (this.getZAngle() < 90) this.nextStage();
-                break;
-            case 3: // move forward
-                m_drive.tankDrive(1, 1);
-                if (tick > 1000) this.nextStage();
-                break;
-            case 4: // rotate left
-                m_drive.tankDrive(-1, 1);
-                if (this.getZAngle() < 90) this.nextStage();
-                break;
-            case 5: // try to get DOCKED
-                m_drive.tankDrive(1, 1);
-                if (tick > 2000) this.nextStage();
-                break;
-            case 6: // try to get ENGAGED
-                this.doBalance();
-                break;
-            default:
-                break;
-        }
-    }
-    
     public void nextStage() {
         currentTime = System.currentTimeMillis();
         currentAngle = ahrs.getAngle();
