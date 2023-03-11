@@ -158,11 +158,13 @@ public class AutonomousDrive extends CommandBase {
         break;
         case 12:
             double roll = this.getCurrentRoll();
-            System.out.println(roll);
+            System.out.println(ahrs.getRawGyroX());
+            System.out.println(ahrs.getRawGyroY());
+            System.out.println("NEXT");
             if (roll > 5) {
-                m_drive.tankDrive(0.6, 0.6);
+                m_drive.tankDrive(0.55, 0.55);
             } else if (roll < -5) {
-                m_drive.tankDrive(-0.5, -0.5);
+                m_drive.tankDrive(-0.55, -0.55);
             } else {
                 m_drive.tankDrive(0, 0);
             }
