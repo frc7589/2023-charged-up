@@ -263,7 +263,8 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     System.out.println(ahrs.getRawGyroX());
     System.out.println(ahrs.getRawGyroY());
-    System.out.println(ahrs.getRawGyroZ());
+    System.out.println(ahrs.getRoll());
+    System.out.println("NEXT");
   }
 
   /** This function is called once when the robot is first started up. */

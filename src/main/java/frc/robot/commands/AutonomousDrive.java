@@ -155,54 +155,136 @@ public class AutonomousDrive extends CommandBase {
                 m_drive.tankDrive(0, 0);
                 this.nextStage();
             }
+            ahrs.getRawGyroY();
         break;
         case 12:
             double roll = this.getCurrentRoll();
-            System.out.println(ahrs.getRawGyroX());
-            System.out.println(ahrs.getRawGyroY());
+            double rSpeed = ahrs.getRawGyroY();
+            System.out.println(roll);
+            System.out.println(rSpeed);
             System.out.println("NEXT");
-            if (roll > 5) {
-                m_drive.tankDrive(0.55, 0.55);
-            } else if (roll < -5) {
-                m_drive.tankDrive(-0.55, -0.55);
-            } else {
+            /*if (roll > 5 && rSpeed < -5 || roll < -5 && rSpeed > 5) {
                 m_drive.tankDrive(0, 0);
+                break;
+            }*/
+            if (roll < -5) {
+                double speed = (roll + 5) / 15;
+                m_drive.tankDrive(speed, speed);
+                break;
             }
+            if (roll > 5) {
+                double speed = (roll - 5) / 15;
+                m_drive.tankDrive(speed, speed);
+                break;
+            }
+            m_drive.tankDrive(0, 0);
+            // m_drive.tankDrive(0.55, 0.55);
         break;
         default: break;
         }
     }
 
     private void B2R2drive() {
-        System.out.println("autonomous drive for B2 position is still being worked in progress");
+        System.out.println("autonomous drive for B2 and R2 position is still being worked in progress");
     }
 
     private void B3R1drive() {
         switch (stage) {
-        case 1: // move forward
-            m_drive.tankDrive(0.5, 0.5);
-            if (tick > 2000) this.nextStage();
-        break;
-        case 2: // rotate right
-            this.rotateDrive(-100);
-            if (Math.abs(ahrs.getRawGyroZ()) < 30 && tick > 300) this.nextStage();
-            System.out.println(ahrs.getRawGyroZ());
-        break;
-        case 3: // move forward
-            m_drive.tankDrive(0.5, 0.5);
-            if (tick > 2000) this.nextStage();
-        break;
-        case 4: // rotate right
-            this.rotateDrive(-90);
-            if (Math.abs(ahrs.getRawGyroZ()) < 30 && tick > 300) this.nextStage();
-            System.out.println(ahrs.getRawGyroZ());
-        break;
-        case 5: // move forward
-            m_drive.tankDrive(0.5, 0.5);
-            if (tick > 800) this.nextStage();
-        break;
-        default:
-        break;
+            case 1: // raise the arm
+                m_arm.set(0.6);
+                if (tick > 1200) {
+                    m_arm.set(0);
+                    this.nextStage();
+                }
+                break;
+            case 2: // move towards to the GRIDs
+                m_drive.tankDrive(-0.7, -0.7);
+                if (tick > 600) {
+                    m_drive.tankDrive(0, 0);
+                    this.nextStage();
+                }
+                break;
+            case 3: // still moving but the motor isn't powered
+                if (tick > 200)
+                    this.nextStage();
+                break;
+            case 4: // put down the cube
+                // cone +, cube -
+                m_intake.set(-0.8);
+                if (tick > 800) {
+                    m_intake.set(0);
+                    this.nextStage();
+                }
+                break;
+            case 5: // move backwards to leave the community
+                m_drive.tankDrive(0.8, 0.8);
+                if (tick > 500)
+                    this.nextStage();
+                break;
+            case 6: // still moving backwards but also lower the arm
+                m_arm.set(-0.5);
+                m_drive.tankDrive(0.8, 0.8);
+                if (tick > 1000) {
+                    m_arm.set(0);
+                    this.nextStage();
+                }
+                break;
+            case 7: // leaving community
+                m_drive.tankDrive(0.8, 0.8);
+                if (tick > 1300)
+                    this.nextStage();
+                break;
+            case 8: // turn left/right
+                if (!doEngage) {
+                    stage += 100;
+                    break;
+                }
+                if (this.rotateDrive(90))
+                    this.nextStage();
+                break;
+            case 9: // go to the front of the CHARGE STATION
+                m_drive.tankDrive(1, 1);
+                if (tick > 800)
+                    this.nextStage();
+                break;
+            case 10: // turn again
+                if (this.rotateDrive(90))
+                    this.nextStage();
+                break;
+            case 11: // move onto the CHARGE STATION
+                m_drive.tankDrive(0.9, 0.9);
+                System.out.println(this.getCurrentRoll());
+                if (this.getCurrentRoll() > 10) {
+                    m_drive.tankDrive(0, 0);
+                    this.nextStage();
+                }
+                ahrs.getRawGyroY();
+                break;
+            case 12:
+                double roll = this.getCurrentRoll();
+                double rSpeed = ahrs.getRawGyroY();
+                System.out.println(roll);
+                System.out.println(rSpeed);
+                System.out.println("NEXT");
+                if (roll > 5 && rSpeed < -5 || roll < -5 && rSpeed > 5) {
+                    m_drive.tankDrive(0, 0);
+                    break;
+                }
+                if (roll < -5) {
+                    double speed = (roll + 5) / 6;
+                    m_drive.tankDrive(speed, speed);
+                    break;
+                }
+                if (roll > 5) {
+                    double speed = (roll - 5) / 6;
+                    m_drive.tankDrive(speed, speed);
+                    break;
+                }
+                m_drive.tankDrive(0, 0);
+                // m_drive.tankDrive(0.55, 0.55);
+                break;
+            default:
+                break;
         }
     }
 
