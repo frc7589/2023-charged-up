@@ -103,6 +103,8 @@ public class Robot extends TimedRobot {
     rightGroup = new MotorControllerGroup(motorRightFront, motorRightRear);
     drive = new DifferentialDrive(leftGroup, rightGroup);
 
+    drive.setSafetyEnabled(false);
+
     leftGroup.setInverted(true); // 左馬達組啟用反轉
 
     ahrs = new AHRS(SPI.Port.kMXP);
@@ -260,12 +262,7 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {
-    System.out.println(ahrs.getRawGyroX());
-    System.out.println(ahrs.getRawGyroY());
-    System.out.println(ahrs.getRoll());
-    System.out.println("NEXT");
-  }
+  public void testPeriodic() {}
 
   /** This function is called once when the robot is first started up. */
   @Override
