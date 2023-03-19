@@ -27,7 +27,7 @@ public class AutonomousDrive extends CommandBase {
     public static final int B1 = 1, B2 = 2, B3 = 3, R1 = 4, R2 = 5, R3 = 6;
 
     /**
-     * The constructor of autonomous command.
+     * The constructor of the autonomous command.
      * Currently the parameters aren't subsystems,
      * but that's simply because we're too bad at coding.
      * I'll try to teach the juniors how to write command robot during off season
@@ -132,7 +132,8 @@ public class AutonomousDrive extends CommandBase {
         break;
         case 7: // leaving community
             m_drive.tankDrive(0.8, 0.8);
-            if (tick > 1300) this.nextStage();
+            if (doEngage && tick > 1300) this.nextStage();
+            else if (!doEngage && tick > 800) this.nextStage();
         break;
         case 8: // turn left/right
             if (!doEngage) {
@@ -246,21 +247,22 @@ public class AutonomousDrive extends CommandBase {
         break;
         case 7: // leaving community
             m_drive.tankDrive(0.8, 0.8);
-            if (tick > 1300) this.nextStage();
+            if (doEngage && tick > 1300) this.nextStage();
+            else if (!doEngage && tick > 800) this.nextStage();
         break;
         case 8: // turn left/right
             if (!doEngage) {
                 stage += 100;
                 break;
             }
-            if (this.rotateDrive(-90)) this.nextStage();
+            if (this.rotateDrive(90)) this.nextStage();
         break;
         case 9: // go to the front of the CHARGE STATION
             m_drive.tankDrive(1, 1);
             if (tick > 800) this.nextStage();
         break;  
         case 10: // turn again
-            if (this.rotateDrive(-90)) this.nextStage();
+            if (this.rotateDrive(90)) this.nextStage();
         break;
         case 11: // move onto the CHARGE STATION
             m_drive.tankDrive(0.9, 0.9);
@@ -279,23 +281,32 @@ public class AutonomousDrive extends CommandBase {
              * 參數y 是給車子的速度 -> speed
              * 而在這個參數式上的點有
              * A( 3, 0.3)
-             * B( 6, 0.5)
+             * B(10, 0.5)
              * C(15, 0.7)
-             * 0.4  應該是在平面上能走的最低速度
+             * 0.3  應該是在平面上能走的最低速度
              * 0.7 是因為之前測的時候0.65不行 所以試試看再往上加數字 如果還是不行的話改成這個
-             * -0.0032*roll*roll + 0.096*roll + 0.042
-             * 這條的C點是 (15, 0.75) 阿如果再不行的話就改成 0.8
-             * -0.00284*roll*roll + 0.092*roll + 0.05
+             * C(15, 0.75)
+             * 0.00179*roll*roll + 0.0054*roll + 0.268;
+             * C(15, 0.8)
+             * 0.00269*roll*roll - 0.0073*roll + 0.304; // 一次項係數是負的要注意
              * 
              * 要注意的是 roll < 0 的時候只要把 roll^1 的係數改正負號就好
+             * 
+             * 如果會卡卡的可以試試看這組 B點的座標改成 B(6, 0.5):
+             * C(15, 0.7)
+             * -0.0037*roll*roll + 0.1*roll + 0.033;
+             * C(15, 0.75)
+             * -0.0032*roll*roll + 0.096*roll + 0.042;
+             * C(15, 0.8)
+             * -0.00284*roll*roll + 0.092*roll + 0.05;
              */
-            if (roll < -3) {
-                double speed = -0.0037*roll*roll - 0.1*roll + 0.033;
+            if (roll > 3) {
+                double speed = 0.000952*roll*roll + 0.01619*roll + 0.243;
                 m_drive.tankDrive(speed, speed);
                 break;
             }
-            if (roll > 3) {
-                double speed = -0.0037*roll*roll + 0.1*roll + 0.033;
+            if (roll < -3) {
+                double speed = 0.000952*roll*roll - 0.01619*roll + 0.243;
                 m_drive.tankDrive(speed, speed);
                 break;
             }
