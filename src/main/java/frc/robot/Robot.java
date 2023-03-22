@@ -44,8 +44,8 @@ public class Robot extends TimedRobot {
    * so you don't have to make everything CAPS. Also it will make the code less messy.
    * You should have learnt how to do that in class, you might want to do this as quickly as possible.
    */
-  private static final int INTAKE_ID = 6; // 手掌馬達&編號
-  private static final int ARM_ID = 3; // 手臂馬達&編號
+  private static final int INTAKE_ID = 6; 
+  private static final int ARM_ID = 3;
 
   private static final int RIGHT_FRONT_ID = 7;
   private static final int LEFT_FRONT_ID = 9;
@@ -105,11 +105,17 @@ public class Robot extends TimedRobot {
 
     drive.setSafetyEnabled(false);
 
-    leftGroup.setInverted(true); // 左馬達組啟用反轉
+    leftGroup.setInverted(true);
 
     ahrs = new AHRS(SPI.Port.kMXP);
 
+    /* AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE */
+    /* AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE */
+    /* AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE */
     autoCommand = new AutonomousDrive(drive, armMotor, intakeMotor, ahrs, AutonomousDrive.B1, true);
+    /* AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE */
+    /* AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE */
+    /* AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE AUTO HERE */
 
     SmartDashboard.putNumber("drive speed", 0.5);
     drivespeed = SmartDashboard.getNumber("drive speed", 0.5);
